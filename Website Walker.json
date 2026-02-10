@@ -1,0 +1,332 @@
+{
+  "name": "Website Walker",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INTERNAL_AGENT_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$env.BRIDGE_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  chatInput: $json.task\n} }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "c3135545-bc82-46b8-aae2-a10f10d078ea",
+      "name": "Run Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1184,
+        -368
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -368
+      ],
+      "id": "d2a0abe8-db1f-4be7-9344-bade743a4eef",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $env.NOTION_RESULTS_URL }}",
+          "mode": "url"
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "bulleted_list_item",
+              "richText": true,
+              "text": {
+                "text": [
+                  {
+                    "text": "=report_{{ $json.sessionId }}",
+                    "isLink": true,
+                    "textLink": "={{ $json.reportUrl }}",
+                    "annotationUi": {}
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        -368
+      ],
+      "id": "79a099c4-9e12-441f-9398-8be5d7f7308a",
+      "name": "Append Assessment URL",
+      "credentials": {
+        "notionApi": {
+          "id": "Fntt52skXnfZrGn8",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "operation": "getAll",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $env.NOTION_TASKS_URL }}",
+          "mode": "url"
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -368
+      ],
+      "id": "6e686f3b-ecc6-4ce8-93ac-7447783a09f3",
+      "name": "Get Assessment Tasks",
+      "credentials": {
+        "notionApi": {
+          "id": "Fntt52skXnfZrGn8",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        912,
+        -368
+      ],
+      "id": "b19cde0e-dce6-475f-bf85-4abe05152fec",
+      "name": "Loop Over Tasks"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\t\"blocks\": [\n\t\t{\n\t\t\t\"type\": \"header\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\"text\": \":robot_face:  New Assessment Reports  :robot_face:\",\n\t\t\t\t\"emoji\": true\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"type\": \"divider\"\n\t\t},\n\t\t{\n\t\t\t\"type\": \"actions\",\n\t\t\t\"elements\": [\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"button\",\n\t\t\t\t\t\"text\": {\n\t\t\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\t\t\"text\": \"View More\",\n\t\t\t\t\t\t\"emoji\": true\n\t\t\t\t\t},\n\t\t\t\t\t\"style\": \"primary\",\n\t\t\t\t\t\"url\": \"{{ $env.NOTION_RESULTS_URL }}\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1184,
+        -560
+      ],
+      "id": "d3f753ab-9d14-4027-97e4-3b0e20c7a73a",
+      "name": "Send To Slack",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "content",
+        "options": {
+          "destinationFieldName": "task"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -368
+      ],
+      "id": "3790af70-8dad-47a8-a502-469b2c5935ea",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1632,
+        -368
+      ],
+      "id": "a8faf638-c23a-4512-bb54-03582c8bc2e6",
+      "name": "Timeout",
+      "webhookId": "12b96cff-681a-4e2d-a506-6abbeb922ba9"
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $env.NOTION_RESULTS_URL }}",
+          "mode": "url"
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "heading_3",
+              "textContent": "={{ $json['Readable date'] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        -368
+      ],
+      "id": "fee53db9-a9c7-434d-abb8-324cc5c9a242",
+      "name": "Add Current Date",
+      "credentials": {
+        "notionApi": {
+          "id": "Fntt52skXnfZrGn8",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Agent": {
+      "main": [
+        [
+          {
+            "node": "Append Assessment URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Add Current Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Assessment URL": {
+      "main": [
+        [
+          {
+            "node": "Timeout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Assessment Tasks": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Tasks": {
+      "main": [
+        [
+          {
+            "node": "Send To Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Run Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timeout": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Current Date": {
+      "main": [
+        [
+          {
+            "node": "Get Assessment Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9nV0IhsmxL8_REN5KTENT"
+  },
+  "versionId": "ce79a296-9376-4621-bd87-0a36df6388e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4f674624576cae5bbd4b23407b6223666829f9c970f3663134b0be051b825196"
+  },
+  "id": "E3Hdlmm3yqoedbSra0QeM",
+  "tags": []
+}
