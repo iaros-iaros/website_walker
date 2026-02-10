@@ -1,0 +1,10 @@
+.env
+node_modules/
+public/recordings/
+public/walk-reports/
+bridge.log
+.gemini/
+.playwright-mcp/
+backup_n8n.json
+site_walk_workflow.json
+Caddyfile

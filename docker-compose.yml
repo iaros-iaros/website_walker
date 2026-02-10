@@ -1,0 +1,35 @@
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./public:/srv/public
+      - visual_tester_certs:/data/caddy-shared:ro
+    command: caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_SECURE_COOKIE=false
+      - BRIDGE_API_KEY=${BRIDGE_API_KEY}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - SLACK_WEBHOOK=${SLACK_WEBHOOK}
+      - NOTION_RESULTS_URL=${NOTION_RESULTS_URL}
+      - NOTION_TASKS_URL=${NOTION_TASKS_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
+  visual_tester_certs:
+    external: true
+    name: visual-tester_caddy_data
