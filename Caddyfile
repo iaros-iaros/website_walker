@@ -1,0 +1,20 @@
+n8n.example.com:8443 {
+  # Serve static reports
+  handle_path /walk-reports/* {
+    basic_auth {
+      # specific_user $2a$14$REPLACE_WITH_YOUR_HASHED_PASSWORD
+    }
+    root * /srv/public/walk-reports
+    file_server
+  }
+  handle_path /recordings/* {
+    basic_auth {
+      # specific_user $2a$14$REPLACE_WITH_YOUR_HASHED_PASSWORD
+    }
+    root * /srv/public/recordings
+    file_server
+  }
+  handle {
+    reverse_proxy n8n:5678
+  }
+}
