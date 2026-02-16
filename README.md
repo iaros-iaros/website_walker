@@ -1,3 +1,5 @@
+<img width="1807" height="707" alt="walker" src="https://github.com/user-attachments/assets/dd383ef0-f901-453c-af7b-7e95f4b8dbec" />
+
 # Website Walker — Autonomous Site QA Agent
 
 An autonomous QA agent that uses the Gemini CLI + Playwright to walk websites, capture screenshots, generate GIFs and produce human-readable HTML assessment reports. The bridge service exposes a simple HTTP endpoint that orchestrates Gemini runs (used by n8n in the provided workflow).
